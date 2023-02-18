@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
-#include <cmath>  
+#include <cmath>
 #include <string>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
 string DECTOBIN(int num, int length){
@@ -13,7 +15,7 @@ string DECTOBIN(int num, int length){
     if (curint >= powVec[c]){outstring += "1";curint -= powVec[c];}
     else{outstring += "0";}
   }
-  return outstring; 
+  return outstring;
 }
 void join(const vector<string>& v, char c, string& s) {
 
@@ -94,36 +96,16 @@ vector<string> evaluateLogic(vector<string> values,vector<string> inputval,vecto
   return outstates;
 }
 
-int main() {
-  srand(time(NULL));
+int main(){
+  bool display = true;
   string bits;
   string upto;
-  int gate;
-  int maxlogicgates = 8;
-  int minlogicgates = 1;
-  int outvalcount = 1;
-  int logicgatecount;
-  vector<string> inputval;
-  vector<string> values;
-  vector<int> outputval;
-  vector<string> inputlist;
-  vector<string> evalout;
-  vector<string> expected;
-  int bestscore = 10000000000;
-  string aaaa;
   string temp;
-  bool works;
-  bool error1;
-  bool error2;
-  double score;
-  int bestlength = maxlogicgates + 4;
-  vector<string> bestval;
-  vector <string> gates = {"NOT ", "OR  ", "AND ", "NOR ", "NAND", "XOR ", "XNOR"};
-  vector <int> inputs = {1, 2, 2, 2, 2, 2, 2};
-  string letlist = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  vector<string> expected;
   cout << "Number of bits:";
   cin >> bits;
   while (true){
+
     cout << "upto:";
     cin >> upto;
     if (stoi(upto)+1 <= pow(2, stoi(bits)) && stoi(upto) >= 0){
@@ -136,8 +118,36 @@ int main() {
     cin >> temp;
     expected.push_back(temp);
   }
+  srand(time(NULL));
+
+  int gate;
+  int maxlogicgates = 7;
+  int minlogicgates = 2;
+  int outvalcount = 1;
+  int logicgatecount;
+  vector<string> inputval;
+  vector<string> values;
+  vector<int> outputval;
+  vector<string> inputlist;
+  vector<string> evalout;
+
+  int bestscore = 10000000000;
+  string aaaa;
+  bool works;
+  bool error1;
+  bool error2;
+  double score;
+  vector <int> bestoutputs;
+  int bestlength = maxlogicgates + 4;
+  vector<string> bestval;
+  vector <string> gates = {"NOT ", "OR  ", "AND ", "NOR ", "NAND", "XOR ", "XNOR"};
+  vector <double> scoreg = {1, 1, 1, 1.5, 1.5, 1.7, 2.2};
+  vector <int> inputs = {1, 2, 2, 2, 2, 2, 2};
+  string letlist = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (int a = 0; a < stoi(upto)+1; a++){inputval.push_back(DECTOBIN(a, stoi(bits)));}
-  while(true){
+  int stime = time(NULL);
+  //for (int a = 0; a < 100000; a++){
+  while((time(NULL)-60) < stime){
     score = 0;
     maxlogicgates = bestlength - 4;
     values.clear();
@@ -148,12 +158,12 @@ int main() {
       inputlist.clear();
       aaaa = "";
       gate = rand()%(gates.size());
-      score += gate;
-      if (score >= bestscore){break;}
+      score += scoreg[gate];
       for (int d = 0; d < inputs[gate]; d++){inputlist.push_back(to_string(rand()%(values.size())));}
       join(inputlist, ' ', aaaa);
       values.push_back(gates[gate] + "(" + aaaa + ")");
     }
+    if (score >= bestscore && values.size() == bestlength){continue;}
     for (int d = 0; d < outvalcount; d++){outputval.push_back(rand()%values.size());}
     evalout.clear();
     evalout = evaluateLogic(values, inputval, outputval, false);
@@ -161,7 +171,8 @@ int main() {
     error1 = true;
     error2 = true;
     for(int d =0; d < evalout.size(); d++){
-      if (evalout[d] != expected[d] && works){works = false;}
+      //cout << evalout[d] << endl;
+      if (evalout[d] != expected[d] && works){works = false;break;}
       else if (evalout[d] != expected[d] && works == false && error1){error1 = false;}
       else if (evalout[d] != expected[d] && error1 == false){error2 = false; break;}
     }
@@ -170,11 +181,24 @@ int main() {
       bestlength = values.size();
       bestval = values;
       bestscore = score;
-      for(int k =0; k < values.size(); k++){cout<<values[k] << " " << endl;}
-      cout << "Output value: " << outputval[0] << endl;
-      cout << "length: " << values.size() << endl;
-      cout << "score: " << to_string(score) << endl;
+      bestoutputs = outputval;
+      if (display){
+        for(int k =0; k < values.size(); k++){cout<<values[k] << " " << endl;}
+          cout << "Outputs: ";
+          for(int k =0; k < outputval.size(); k++){cout<<outputval[k] << " ";}
+          cout << endl;
+          cout << "length: " << values.size() << endl;
+          cout << "score: " << to_string(score) << endl;
+      }
     }
   }
-  return 0;
+  if (display == false){
+  for(int k =0; k < bestval.size(); k++){cout<<bestval[k] << " " << endl;}
+  cout << "Outputs: ";
+  for(int k =0; k < bestoutputs.size(); k++){cout<<bestoutputs[k] << " ";}
+  cout << endl;
+  cout << "length: " << bestlength << endl;
+  cout << "score: " << to_string(bestscore) << endl;
+  }
+    return 0;
 }
